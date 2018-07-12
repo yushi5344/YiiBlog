@@ -51,7 +51,17 @@ class PostController extends Controller
      */
     public function actionView($id)
     {
-        return $this->render('view', [
+    	//返回多条记录
+    	//$post=Yii::$app->db->createCommand('select * FROM post')->queryAll();
+	    //返回一条数据
+        //$post=Yii::$app->db->createCommand("select * FROM post")->queryOne();
+	    //参数绑定
+//	    $post=Yii::$app->db->createCommand("SELECT * FROM post WHERE id=:id AND status=:status")
+//	        ->bindValue(':id',$_GET['id'])
+//		    ->bindValue(':status',2)
+//		    ->queryOne();
+//	    var_dump($post);
+    	return $this->render('view', [
             'model' => $this->findModel($id),
         ]);
     }
