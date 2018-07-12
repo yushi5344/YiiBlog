@@ -7,7 +7,7 @@ use yii\widgets\DetailView;
 /* @var $model common\models\Post */
 
 $this->title = $model->title;
-$this->params['breadcrumbs'][] = ['label' => 'Posts', 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => '文章管理', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="post-view">
@@ -15,11 +15,11 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
-        <?= Html::a('Update', ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
-        <?= Html::a('Delete', ['delete', 'id' => $model->id], [
+        <?= Html::a('修改', ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
+        <?= Html::a('删除', ['delete', 'id' => $model->id], [
             'class' => 'btn btn-danger',
             'data' => [
-                'confirm' => 'Are you sure you want to delete this item?',
+                'confirm' => '确认要删除这篇文章嘛?',
                 'method' => 'post',
             ],
         ]) ?>
@@ -32,7 +32,11 @@ $this->params['breadcrumbs'][] = $this->title;
             'title',
             'content:ntext',
             'tags:ntext',
-            'status',
+//            'status',
+            ['label'=>'状态',
+//              'value'=>$model->getStatus0()->name
+              'value'=>1
+            ],
             'create_time:datetime',
             'update_time:datetime',
             'author_id',
