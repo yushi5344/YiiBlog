@@ -60,7 +60,40 @@ class PostController extends Controller
 //	        ->bindValue(':id',$_GET['id'])
 //		    ->bindValue(':status',2)
 //		    ->queryOne();
-//	    var_dump($post);
+	    //AR类
+	    //查询一条
+//	    $model=Post::find()->where(['id'=>32])->one();
+	    //或者
+//	    $model=Post::findOne(1);
+	    //查询多条
+//	    $model=Post::find()->where(['status'=>1])->all();
+//	    或者
+//	    $model=Post::findAll(['status'=>1]);
+	    //多条件查询
+//	    $model=Post::find()->where(
+//	    	[
+//	    		'AND',
+//			    ['status'=>1],
+//			    ['author_id'=>1],
+//			    ['LIKE','title','yii2']
+//		    ]
+//	    )
+//		    ->orderBy('id')->all();
+	    //通过SQL语句查询
+//	    $sql="SELECT * FROM post WHERE status=1";
+//	    $model=Post::findBySql($sql)->all();
+//	    var_dump($model);
+	    //访问列数据 AR对象的属性，对应为数据行的列
+//	    $model=Post::findOne(32);
+//	    echo $model->title;
+//	    echo $model->author_id;
+//	    $models=Post::findAll(['status'=>2]);
+//	    foreach ($models as $model) {
+//		    echo $model->id;
+//		    echo $model->title.'<br>';
+//	    }
+	    //操作数据 CRUD
+
     	return $this->render('view', [
             'model' => $this->findModel($id),
         ]);
