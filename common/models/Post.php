@@ -58,7 +58,11 @@ class Post extends \yii\db\ActiveRecord
         ];
     }
 
+
     public function getStatus0(){
-    	return $this->hasOne(Poststatus::className(),['id'=>'status']);
+	    return $this->hasOne(Poststatus::class,['id'=>'status']);
+    }
+    public function getAuthor(){
+    	return $this->hasOne(Adminuser::class,['id'=>'author_id']);
     }
 }

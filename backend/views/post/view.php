@@ -34,12 +34,14 @@ $this->params['breadcrumbs'][] = $this->title;
             'tags:ntext',
 //            'status',
             ['label'=>'状态',
-//              'value'=>$model->getStatus0()->name
-              'value'=>1
+              'value'=>$model->status0->name
             ],
             'create_time:datetime',
             'update_time:datetime',
-            'author_id',
+//            'author_id',
+            ['label'=>'作者',
+                'value'=>$model->author->nickname
+            ]
         ],
     ]) ?>
 
