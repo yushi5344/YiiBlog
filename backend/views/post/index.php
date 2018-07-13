@@ -2,7 +2,7 @@
 
 use yii\helpers\Html;
 use yii\grid\GridView;
-
+use common\models\Poststatus;
 /* @var $this yii\web\View */
 /* @var $searchModel common\models\PostSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
@@ -22,16 +22,38 @@ $this->params['breadcrumbs'][] = $this->title;
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
         'columns' => [
-            ['class' => 'yii\grid\SerialColumn'],
-
-            'id',
+//            ['class' => 'yii\grid\SerialColumn'],
+//            'id',
+            [
+                    'attribute' => 'id',
+                    'contentOptions' =>['width'=>'30px']
+            ],
             'title',
-            'content:ntext',
+	         [
+	              'attribute' => 'author_id',
+                  'value' => 'author.nickname',
+                 'contentOptions' => ['width'=>'90px']
+             ],
+//	         'author_id',
+//            'content:ntext',
             'tags:ntext',
-            'status',
+//            'status',
+            [
+                    'attribute' => 'status',
+                'value' => 'status0.name',
+                'filter' =>Poststatus::find()
+                            ->select(['name','id'])
+                            ->orderBy('position')
+                            ->indexBy('id')
+                            ->column()
+            ],
             // 'create_time:datetime',
-            // 'update_time:datetime',
-            // 'author_id',
+//             'update_time:datetime',
+            [
+                    'attribute' => 'update_time',
+                    'format' => ['date','php:Y-m-d H:i:s'],
+            ],
+
 
             ['class' => 'yii\grid\ActionColumn'],
         ],
