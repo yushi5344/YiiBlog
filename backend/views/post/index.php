@@ -7,7 +7,7 @@ use yii\grid\GridView;
 /* @var $searchModel common\models\PostSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = 'Posts';
+$this->title = '文章';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="post-index">
@@ -16,7 +16,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
     <p>
-        <?= Html::a('Create Post', ['create'], ['class' => 'btn btn-success']) ?>
+        <?= Html::a('新增', ['create'], ['class' => 'btn btn-success']) ?>
     </p>
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
