@@ -30,7 +30,7 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
             'title',
 	         [
-	              'attribute' => 'author_id',
+	              'attribute' => 'authorName',
                   'value' => 'author.nickname',
                  'contentOptions' => ['width'=>'90px']
              ],

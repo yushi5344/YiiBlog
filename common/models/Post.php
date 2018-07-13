@@ -56,6 +56,7 @@ class Post extends \yii\db\ActiveRecord
             'create_time' => '创建时间 ',
             'update_time' => '更新时间 ',
             'author_id' => '作者',
+            'authorName' => '作者',
         ];
     }
 

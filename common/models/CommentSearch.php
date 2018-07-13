@@ -12,14 +12,19 @@ use common\models\Comment;
  */
 class CommentSearch extends Comment
 {
-    /**
+	public function attributes()
+	{
+		return array_merge(parent::attributes(),['user.username','post.title']);
+	}
+
+	/**
      * @inheritdoc
      */
     public function rules()
     {
         return [
             [['id', 'status', 'create_time', 'userid', 'post_id'], 'integer'],
-            [['content', 'email', 'url'], 'safe'],
+            [['content', 'email', 'url','user.username','post.title'], 'safe'],
         ];
     }
 
@@ -47,6 +52,11 @@ class CommentSearch extends Comment
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
+	        'pagination'=>['pageSize'=>5],
+	        'sort'=>[
+	        	'defaultOrder'=>['id'=>SORT_ASC],
+		        'attributes'=>['id','create_time']
+	        ]
         ]);
 
         $this->load($params);
@@ -69,6 +79,13 @@ class CommentSearch extends Comment
         $query->andFilterWhere(['like', 'content', $this->content])
             ->andFilterWhere(['like', 'email', $this->email])
             ->andFilterWhere(['like', 'url', $this->url]);
+
+
+		$query->join('INNER JOIN','user','user.id=comment.userid');
+		$query->andFilterWhere(['LIKE','user.username',$this->getAttribute('user.username')]);
+
+		$query->join('INNER JOIN','post','post.id=comment.post_id');
+		$query->andFilterWhere(['LIKE','post.title',$this->getAttribute('post.title')]);
 
         return $dataProvider;
     }
