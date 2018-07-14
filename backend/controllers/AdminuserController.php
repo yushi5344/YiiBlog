@@ -3,14 +3,15 @@
 namespace backend\controllers;
 
 use Yii;
-use common\models\AdminUser;
-use common\models\AdminUserSearch;
+use common\models\Adminuser;
+use common\models\AdminuserSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
-
+use backend\models\SignupForm;
+use backend\models\ResetpwdForm;
 /**
- * AdminUserController implements the CRUD actions for AdminUser model.
+ * AdminuserController implements the CRUD actions for Adminuser model.
  */
 class AdminuserController extends Controller
 {
@@ -30,13 +31,14 @@ class AdminuserController extends Controller
     }
 
     /**
-     * Lists all AdminUser models.
+     * Lists all Adminuser models.
      * @return mixed
      */
     public function actionIndex()
     {
-        $searchModel = new AdminUserSearch();
+        $searchModel = new AdminuserSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+
         return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
@@ -44,7 +46,7 @@ class AdminuserController extends Controller
     }
 
     /**
-     * Displays a single AdminUser model.
+     * Displays a single Adminuser model.
      * @param integer $id
      * @return mixed
      */
@@ -56,16 +58,18 @@ class AdminuserController extends Controller
     }
 
     /**
-     * Creates a new AdminUser model.
+     * Creates a new Adminuser model.
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
     public function actionCreate()
     {
-        $model = new AdminUser();
+        $model = new SignupForm();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        if ($model->load(Yii::$app->request->post()) ) {
+            if ($user=$model->signup()){
+            	return $this->redirect(['view','id'=>$user->id]);
+            }
         } else {
             return $this->render('create', [
                 'model' => $model,
@@ -73,12 +77,14 @@ class AdminuserController extends Controller
         }
     }
 
-    /**
-     * Updates an existing AdminUser model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param integer $id
-     * @return mixed
-     */
+	/**
+	 * @desc
+	 * @author guomin
+	 * @date 2018/7/14  15:38
+	 * @param $id
+	 * @return string|\yii\web\Response
+	 * @throws NotFoundHttpException
+	 */
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
@@ -93,10 +99,11 @@ class AdminuserController extends Controller
     }
 
     /**
-     * Deletes an existing AdminUser model.
+     * Deletes an existing Adminuser model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param integer $id
      * @return mixed
+     * @throws
      */
     public function actionDelete($id)
     {
@@ -106,18 +113,39 @@ class AdminuserController extends Controller
     }
 
     /**
-     * Finds the AdminUser model based on its primary key value.
+     * Finds the Adminuser model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return AdminUser the loaded model
+     * @return Adminuser the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
     {
-        if (($model = AdminUser::findOne($id)) !== null) {
+        if (($model = Adminuser::findOne($id)) !== null) {
             return $model;
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
+    }
+
+	/**
+	 * @desc 重置密码
+	 * @author guomin
+	 * @date 2018/7/14  15:39
+	 * @param $id
+	 * @return string|\yii\web\Response
+	 */
+    public function actionResetpwd($id){
+	    $model = new ResetpwdForm();
+
+	    if ($model->load(Yii::$app->request->post()) ) {
+		    if ($user=$model->resetPwd($id)){
+			    return $this->redirect(['index']);
+		    }
+	    }
+	    return $this->render('resetpwd', [
+		    'model' => $model,
+	    ]);
+
     }
 }
