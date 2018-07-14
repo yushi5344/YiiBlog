@@ -6,6 +6,7 @@ use Yii;
 use common\models\Post;
 use common\models\PostSearch;
 use yii\web\Controller;
+use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 
@@ -103,9 +104,13 @@ class PostController extends Controller
      * Creates a new Post model.
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
+     * @throws
      */
     public function actionCreate()
     {
+    	if (!Yii::$app->user->can('createPost')){
+    		throw new ForbiddenHttpException('对不起，你没有进行该操作的权限');
+	    }
         $model = new Post();
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
