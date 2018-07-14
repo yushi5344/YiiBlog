@@ -59,7 +59,7 @@ class Comment extends \yii\db\ActiveRecord
             'userid' => '评论者',
             'email' => '邮箱',
             'url' => 'Url地址',
-            'post_id' => '文章ID',
+            'post_id' => '文章',
         ];
     }
 
@@ -98,4 +98,37 @@ class Comment extends \yii\db\ActiveRecord
     	$tmpLen=mb_strlen($tmpStr);
     	return mb_substr($tmpStr,0,20,'utf-8').($tmpLen>20 ? '...' : '');
     }
+
+	/**
+	 * @desc
+	 * @author guomin
+	 * @date 2018/7/14  9:04
+	 * @return bool
+	 */
+    public function approve(){
+    	$this->status=2;
+    	return ($this->save() ? true : false);
+    }
+
+	/**
+	 * @desc
+	 * @author guomin
+	 * @date 2018/7/14  9:07
+	 * @return int|string  评论未审核的条数
+	 */
+    public static function getPengdingCommentCount(){
+    	return Comment::find()->where(['status'=>1])->count();
+    }
+
+	public function beforeSave($insert)
+	{
+		if (parent::beforeSave($insert)){
+			if ($insert){
+				$this->create_time=time();
+			}
+			return true;
+		}else{
+			return false;
+		}
+	}
 }
