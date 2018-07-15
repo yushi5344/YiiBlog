@@ -35,10 +35,11 @@ use frontend\components\RctReplyWidget;
                         <span class="glyphicon glyphicon-search" aria-hidden="true"></span>查找文章
                         <?=
                             $data=Yii::$app->cache->get('postCount');
+                            $dependency=new \yii\caching\DbDependency( ['sql'=>'select count(id) from post'] );
                             if ($data===false){
                                 $data=\common\models\Post::find()->count();
                             }
-                            Yii::$app->cache->set('postCount',$data,86400);
+                            Yii::$app->cache->set('postCount',$data,86400,$dependency);
                             echo $data;
                         ?>
                     </li>
