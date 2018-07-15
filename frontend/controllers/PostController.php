@@ -8,6 +8,7 @@ use common\models\User;
 use Yii;
 use common\models\Post;
 use common\models\PostSearch;
+use yii\db\Query;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -43,6 +44,15 @@ class PostController extends Controller
 //			        'class'=>'yii\caching\DbDependency',
 //			        'sql'=>'select count(id) from post',
 //		        ]
+//	        ],
+            //Http缓存
+//	        'httpCache'=>[
+//	        	'class'=>'yii\filters\HttpCache',
+//		        'only' => ['detail'],
+//		        'lastModified' => function($action,$params){
+//        	        $q=new Query();
+//        	        return $q->from('post')->max('update_time');
+//		        }
 //	        ],
         ];
     }
@@ -162,17 +172,20 @@ class PostController extends Controller
 	    $recentComments=Comment::findRecentComments();//最新评论
 	    $userMe=User::findOne(Yii::$app->user->id);
 	    $commentModel=new Comment();
-	    $commentModel->email=$userMe->email;
-	    $commentModel->userid=$userMe->id;
-
 	    //step2 当评论提交时 处理评论
 	    if ($commentModel->load(Yii::$app->request->post())){
-	    	var_dump($_POST);
-			$commentModel->status=1;
-			$commentModel->post_id=$id;
-			if ($commentModel->save()){
-				$this->added=1;
-			}
+		    if (Yii::$app->user->isGuest) {
+		    	$this->redirect(['site/login']);
+		    }else{
+			    $commentModel->email=$userMe->email;
+			    $commentModel->userid=$userMe->id;
+			    $commentModel->status=1;
+			    $commentModel->post_id=$id;
+			    if ($commentModel->save()){
+				    $this->added=1;
+			    }
+		    }
+
 	    }
 
 	    //step3 传数据给视图渲染
@@ -180,8 +193,6 @@ class PostController extends Controller
 	    	'model'=>$model,
 		    'recentComments'=>$recentComments,
 		    'tags'=>$tags,
-		    'userMe'=>$userMe,
-		    'commentModel'=>$commentModel,
 		    'added'=>$this->added
 	    ]);
     }
