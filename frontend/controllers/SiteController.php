@@ -1,6 +1,7 @@
 <?php
 namespace frontend\controllers;
 
+use common\models\About;
 use Yii;
 use yii\base\InvalidParamException;
 use yii\web\BadRequestHttpException;
@@ -118,9 +119,9 @@ class SiteController extends Controller
         $model = new ContactForm();
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
             if ($model->sendEmail(Yii::$app->params['adminEmail'])) {
-                Yii::$app->session->setFlash('success', 'Thank you for contacting us. We will respond to you as soon as possible.');
+                Yii::$app->session->setFlash('success', '感谢您联系我们，我们会尽快回复您');
             } else {
-                Yii::$app->session->setFlash('error', 'There was an error sending your message.');
+                Yii::$app->session->setFlash('error', '您发送的信息有误');
             }
 
             return $this->refresh();
@@ -138,7 +139,10 @@ class SiteController extends Controller
      */
     public function actionAbout()
     {
-        return $this->render('about');
+    	$about=About::findOne(1);
+        return $this->render('about',[
+        	'about'=>$about
+        ]);
     }
 
     /**
