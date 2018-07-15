@@ -60,7 +60,14 @@ use frontend\components\RctReplyWidget;
                          <span class="glyphicon glyphicon-search" aria-hidden="true"></span>标签云
                      </li>
                      <li class="list-group-item">
-                        <?= TagsCloudWidget::widget(['tags' => $tags])?>
+
+                        <?php
+                            if ($this->beginCache('cache',['dependency'=>$dependency])){
+                                echo TagsCloudWidget::widget(['tags' => $tags]);
+                                $this->endCache();
+                            }
+
+                        ?>
                      </li>
                  </ul>
              </div>

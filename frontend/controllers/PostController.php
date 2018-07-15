@@ -30,6 +30,20 @@ class PostController extends Controller
                     'delete' => ['POST'],
                 ],
             ],
+	        //页面缓存
+//	        'pageCache'=>[
+//		        'class'=>'yii\filters\PageCache',
+//		        'only' => ['index'],
+//		        'duration' => '600',
+//		        'variations' => [
+//		        	Yii::$app->request->get('page'),
+//		        	Yii::$app->request->get('PostSearch'),
+//		        ],
+//		        'dependency' => [
+//			        'class'=>'yii\caching\DbDependency',
+//			        'sql'=>'select count(id) from post',
+//		        ]
+//	        ],
         ];
     }
 
