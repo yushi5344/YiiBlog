@@ -131,4 +131,8 @@ class Comment extends \yii\db\ActiveRecord
 			return false;
 		}
 	}
+
+	public static function findRecentComments($limits=20){
+    	return Comment::find()->where(['status'=>2])->orderBy('create_time desc')->limit($limits)->all();
+	}
 }

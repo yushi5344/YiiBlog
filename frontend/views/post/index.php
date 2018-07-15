@@ -1,9 +1,7 @@
 <?php
-
-use yii\helpers\Html;
-use yii\grid\GridView;
 use yii\widgets\ListView;
 use frontend\components\TagsCloudWidget;
+use frontend\components\RctReplyWidget;
 /* @var $this yii\web\View */
 /* @var $searchModel common\models\PostSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
@@ -60,9 +58,11 @@ use frontend\components\TagsCloudWidget;
             <div class="aaa">
                 <ul class="list-group">
                     <li class="list-group-item">
-                        <span class="glyphicon glyphicon-search" aria-hidden="true"></span>标签云
+                        <span class="glyphicon glyphicon-search" aria-hidden="true"></span>最新评论
                     </li>
-                    <li class="list-group-item">搜索框</li>
+                    <li class="list-group-item">
+                        <?= RctReplyWidget::widget(['recentComments' => $recentComments]) ?>
+                    </li>
                 </ul>
             </div>
         </div>

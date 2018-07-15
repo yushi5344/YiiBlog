@@ -2,6 +2,7 @@
 
 namespace frontend\controllers;
 
+use common\models\Comment;
 use common\models\Tag;
 use Yii;
 use common\models\Post;
@@ -36,7 +37,10 @@ class PostController extends Controller
      */
     public function actionIndex()
     {
+    	//标签云
     	$tags=Tag::findTagWeights();
+    	//最新评论
+	    $recentComments=Comment::findRecentComments();
         $searchModel = new PostSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
@@ -44,6 +48,7 @@ class PostController extends Controller
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
 	        'tags'=>$tags,
+	        'recentComments'=>$recentComments,
         ]);
     }
 
