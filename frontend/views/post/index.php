@@ -33,6 +33,14 @@ use frontend\components\RctReplyWidget;
                 <ul class="list-group">
                     <li class="list-group-item">
                         <span class="glyphicon glyphicon-search" aria-hidden="true"></span>查找文章
+                        <?=
+                            $data=Yii::$app->cache->get('postCount');
+                            if ($data===false){
+                                $data=\common\models\Post::find()->count();
+                            }
+                            Yii::$app->cache->set('postCount',$data,86400);
+                            echo $data;
+                        ?>
                     </li>
                     <li class="list-group-item">
                         <form action="index.php?r=post/index" id="w0" method="get" class="form-inline">
