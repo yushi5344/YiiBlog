@@ -2,6 +2,7 @@
 
 namespace frontend\controllers;
 
+use common\models\Tag;
 use Yii;
 use common\models\Post;
 use common\models\PostSearch;
@@ -35,12 +36,14 @@ class PostController extends Controller
      */
     public function actionIndex()
     {
+    	$tags=Tag::findTagWeights();
         $searchModel = new PostSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
         return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
+	        'tags'=>$tags,
         ]);
     }
 
