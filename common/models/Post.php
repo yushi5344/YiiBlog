@@ -4,6 +4,8 @@ namespace common\models;
 
 use Yii;
 use yii\helpers\Html;
+use yii\helpers\Url;
+use yii\web\Link;
 
 /**
  * This is the model class for table "Post".
@@ -152,4 +154,33 @@ class Post extends \yii\db\ActiveRecord
 	public function getCommentCount(){
 		return Comment::find()->where(['post_id'=>$this->id,'status'=>2])->count();
 	}
+
+
+	/**
+	 * @desc   给API提供自定义字段名
+	 * @author guomin
+	 * @date 2018/7/16  21:01
+	 * @return array
+	 */
+	public function fields()
+	{
+		return [
+			'id',
+			'title',
+			'内容'=>'content',
+			'status'=>function($model){
+				return $model->status0->name;
+			},
+			'createdBy'=>function($model){
+				return $model->author->nickname;
+			}
+		];
+	}
+
+
+//	public function geLinks(){
+//		return [
+//			Link::REL_SELF=>Url::to(['post/view','id'=>$this->id],true)
+//		];
+//	}
 }

@@ -44,7 +44,15 @@ return [
             'rules' => [
             	[
             		'class'=>'yii\rest\UrlRule',
-		            'controller' => 'post'
+		            'controller' => 'post',
+		            'extraPatterns' => [
+		            	'POST search'=>'search'
+		            ],
+	            ],
+	            [
+	            	'class'=>'yii\rest\UrlRule',
+		            'controller' => 'top10',
+		            'pluralize' => false  //如果为false，则url为http://api.blog.com/top10否则为http://api.blog.com/top10s
 	            ],
             ],
         ],
