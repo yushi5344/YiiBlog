@@ -84,7 +84,7 @@ class PostSearch extends Post
             ->andFilterWhere(['like', 'tags', $this->tags]);
 
         //查询构造
-        $query->join('INNER JOIN','Adminuser','post.author_id=adminuser.id');
+        $query->join('INNER JOIN','adminuser','post.author_id=adminuser.id');
 		$query->andFilterWhere(['LIKE','adminuser.nickname',$this->authorName]);
 
 

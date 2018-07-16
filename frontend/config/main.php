@@ -38,15 +38,15 @@ return [
         'errorHandler' => [
             'errorAction' => 'site/error',
         ],
-
-        'urlManager' => [
-            'enablePrettyUrl' => true,
-            'showScriptName' => false,
-	        'suffix' => '.html',//伪静态
-            'rules' => [
-            	'<controller:\w+>/<id:\d+>'=>'<controller>/detail',
-            ],
-        ],
+		//线上路由重写规则有问题 暂时注释掉
+//        'urlManager' => [
+//            'enablePrettyUrl' => true,
+//            'showScriptName' => false,
+//	        'suffix' => '.html',//伪静态
+//            'rules' => [
+//            	'<controller:\w+>/<id:\d+>'=>'<controller>/detail',
+//            ],
+//        ],
 
     ],
     'params' => $params,
