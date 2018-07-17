@@ -17,14 +17,15 @@ return [
             'csrfParam' => '_csrf-api',
         ],
         'user' => [
-            'identityClass' => 'common\models\User',
+            'identityClass' => 'common\models\AdminUser',
             'enableAutoLogin' => true,
-            'identityCookie' => ['name' => '_identity-api', 'httpOnly' => true],
+	        'enableSession' => false,
+//            'identityCookie' => ['name' => '_identity-api', 'httpOnly' => true],
         ],
-        'session' => [
-            // this is the name of the session cookie used for login on the backend
-            'name' => 'advanced-api',
-        ],
+//        'session' => [
+//            // this is the name of the session cookie used for login on the backend
+//            'name' => 'advanced-api',
+//        ],
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,
             'targets' => [
@@ -53,6 +54,15 @@ return [
 	            	'class'=>'yii\rest\UrlRule',
 		            'controller' => 'top10',
 		            'pluralize' => false  //如果为false，则url为http://api.blog.com/top10否则为http://api.blog.com/top10s
+	            ],
+	            [
+	            	'class'=>'yii\rest\UrlRule',
+		            'controller' => 'adminuser',
+		            'except' => ['delte','update','create','view'],
+		            'pluralize' => false,
+		            'extraPatterns' => [
+		            	'POST login'=>'login'
+		            ]
 	            ],
             ],
         ],

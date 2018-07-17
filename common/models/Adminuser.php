@@ -17,11 +17,12 @@ use yii\web\IdentityInterface;
  * @property string $profile
  * @property string $password_hash
  * @property string $password_reset_token
- *
+ * @property string $access_token
  * @property Post[] $posts
  */
 class Adminuser extends \yii\db\ActiveRecord implements IdentityInterface
 {
+
     /**
      * @inheritdoc
      */
@@ -38,7 +39,7 @@ class Adminuser extends \yii\db\ActiveRecord implements IdentityInterface
         return [
 	        [['username', 'nickname', 'password', 'email', 'auth_key', 'password_hash'], 'required'],
             [['profile'], 'string'],
-            [['username', 'nickname', 'password', 'email'], 'string', 'max' => 128],
+            [['username', 'nickname', 'password','access_token', 'email'], 'string', 'max' => 128],
         ];
     }
 
@@ -82,14 +83,16 @@ class Adminuser extends \yii\db\ActiveRecord implements IdentityInterface
 	 */
 	public static function findIdentityByAccessToken($token, $type = null)
 	{
-		throw new NotSupportedException('"findIdentityByAccessToken" is not implemented.');
+//		throw new NotSupportedException('"findIdentityByAccessToken" is not implemented.');
+		return static::findOne(['access_token'=>$token]);
 	}
 
 	/**
-	 * Finds user by username
-	 *
-	 * @param string $username
-	 * @return static|null
+	 * @desc
+	 * @author guomin
+	 * @date 2018/7/17  18:49
+	 * @param $username
+	 * @return static
 	 */
 	public static function findByUsername($username)
 	{
@@ -197,5 +200,16 @@ class Adminuser extends \yii\db\ActiveRecord implements IdentityInterface
 	public function removePasswordResetToken()
 	{
 		$this->password_reset_token = null;
+	}
+
+	/**
+	 * @desc  生成随机的acsess_token
+	 * @author guomin
+	 * @date 2018/7/17  18:54
+	 * @throws \yii\base\Exception
+	 */
+	public function generateAccessToken(){
+		$this->access_token=Yii::$app->security->generateRandomString();
+		return $this->access_token;
 	}
 }

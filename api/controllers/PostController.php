@@ -3,11 +3,25 @@
 
 	use common\models\Post;
 	use yii\data\ActiveDataProvider;
+	use yii\filters\auth\QueryParamAuth;
+	use yii\helpers\ArrayHelper;
 	use yii\rest\ActiveController;
 
 	class PostController extends ActiveController{
 
 		public $modelClass='common\models\Post';
+
+		public function behaviors()
+		{
+			return ArrayHelper::merge(
+				parent::behaviors(),
+				[
+					'authenticatior'=>[
+						'class'=>QueryParamAuth::className()
+					]
+				]
+			);
+		}
 
 		/*api 访问
 		 * 1.
