@@ -84,7 +84,11 @@ class Adminuser extends \yii\db\ActiveRecord implements IdentityInterface
 	public static function findIdentityByAccessToken($token, $type = null)
 	{
 //		throw new NotSupportedException('"findIdentityByAccessToken" is not implemented.');
-		return static::findOne(['access_token'=>$token]);
+//		return static::findOne(['access_token'=>$token]);
+		//还要验证token过期时间
+		return static::find()->where(['access_token'=>$token])
+		//	->andWhere(['>','expire_at',time()])
+			->one();
 	}
 
 	/**

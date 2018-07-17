@@ -1,6 +1,7 @@
 <?php
 	namespace api\controllers;
 
+	use Yii;
 	use api\models\ApiLoginForm;
 	use yii\rest\ActiveController;
 
@@ -16,8 +17,11 @@
 		 */
 		public function actionLogin(){
 			$model=new ApiLoginForm();
-			$model->username=$_POST['username'];
-			$model->password=$_POST['password'];
+			//非常不建议使用原生POST获取数据
+			//应该使用
+			$model->load(Yii::$app->getRequest()->getBodyParams(),'');
+//			$model->username=$_POST['username'];
+//			$model->password=$_POST['password'];
 			if ($model->login()){
 				return ['access_token'=>$model->login()];
 			}else{

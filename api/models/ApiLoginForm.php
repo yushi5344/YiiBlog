@@ -62,7 +62,12 @@ class ApiLoginForm extends Model
     {
         if ($this->validate()) {
         	$accessToken=$this->_user->generateAccessToken();
+        	//可以设置token的过期时间  然后保存到数据库
+	        //同时 要对accessTOken验证方法进行改进
+	        //在common\models\Adminuser.php中findIdentityByAccessToken
+	        //$this->_user->expire_at=time()+3600*24*7;
         	$this->_user->save();
+        	//Yii::$ap->user->login($this->_user,3600*24*7);
         	return $accessToken;
         } else {
             return false;

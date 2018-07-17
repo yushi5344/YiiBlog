@@ -1,8 +1,10 @@
 <?php
 	namespace api\controllers;
 
+	use common\models\Adminuser;
 	use common\models\Post;
 	use yii\data\ActiveDataProvider;
+	use yii\filters\auth\HttpBasicAuth;
 	use yii\filters\auth\QueryParamAuth;
 	use yii\helpers\ArrayHelper;
 	use yii\rest\ActiveController;
@@ -17,11 +19,28 @@
 				parent::behaviors(),
 				[
 					'authenticatior'=>[
-						'class'=>QueryParamAuth::className()
+						//'class'=>QueryParamAuth::className()  //这是access_token认证
+						'class'=>HttpBasicAuth::class,  //这是Http认证
+						'auth' => function($username,$password){
+							$user=Adminuser::find()->where(['username'=>$username])->one();
+							if ($user->validatePassword($password)){
+								return $user;
+							}
+							return null;
+						}
 					]
 				]
 			);
 		}
+		/*
+		 * api 认证
+		 * 1.access_token
+		 * url 访问是在路径后面带上?access-token=xxxx
+		 *
+		 * 2.Http认证
+		 * 不需要再访问时带上参数
+		 * 需要在弹出窗口输入用户名和密码
+		 */
 
 		/*api 访问
 		 * 1.
