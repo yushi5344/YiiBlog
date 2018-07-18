@@ -12,10 +12,24 @@ return [
     'controllerNamespace' => 'api\controllers',
     'bootstrap' => ['log'],
     'modules' => [],
+	'language'=>'zh-CN',
     'components' => [
         'request' => [
             'csrfParam' => '_csrf-api',
         ],
+	    'response'=>[
+	    	'class'=>'yii\web\Response',
+		    'on beforeSend'=>function($event){
+				$response=$event->sender;
+				$response->data=[
+					'success'=>$response->isSuccessful,
+					'code'=>$response->getStatusCode(),
+					'data'=>$response->data,
+					'message'=>$response->statusText
+				];
+				$response->statusCode=200;
+		    }
+	    ],
         'user' => [
             'identityClass' => 'common\models\User',
             'enableAutoLogin' => true,
