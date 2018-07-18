@@ -61,7 +61,8 @@ return [
 		            'except' => ['delte','update','create','view'],
 		            'pluralize' => false,
 		            'extraPatterns' => [
-		            	'POST login'=>'login'
+		            	'POST login'=>'login',
+		            	'POST signup'=>'signup',
 		            ]
 	            ],
             ],

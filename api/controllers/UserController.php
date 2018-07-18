@@ -1,6 +1,7 @@
 <?php
 	namespace api\controllers;
 
+	use api\models\ApiSignupForm;
 	use Yii;
 	use api\models\ApiLoginForm;
 	use yii\rest\ActiveController;
@@ -30,5 +31,17 @@
 			}
 		}
 
+		public function actionSignup(){
+			$model=new ApiSignupForm();
 
+			$model->load(Yii::$app->getRequest()->getBodyParams(),'');
+//			$model->username=$_POST['username'];
+//			$model->password=$_POST['password'];
+			if ($model->signup()){
+				return ['result'=>'注册成功'];
+			}else{
+				$model->validate();
+				return $model;
+			}
+		}
 	}
