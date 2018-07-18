@@ -1,8 +1,9 @@
 <?php
 	namespace api\controllers;
 
-	use common\models\Adminuser;
+
 	use common\models\Post;
+	use common\models\User;
 	use yii\data\ActiveDataProvider;
 	use yii\filters\auth\HttpBasicAuth;
 	use yii\filters\auth\QueryParamAuth;
@@ -19,15 +20,15 @@
 				parent::behaviors(),
 				[
 					'authenticatior'=>[
-						//'class'=>QueryParamAuth::className()  //这是access_token认证
-						'class'=>HttpBasicAuth::class,  //这是Http认证
-						'auth' => function($username,$password){
-							$user=Adminuser::find()->where(['username'=>$username])->one();
-							if ($user->validatePassword($password)){
-								return $user;
-							}
-							return null;
-						}
+						'class'=>QueryParamAuth::className()  //这是access_token认证
+//						'class'=>HttpBasicAuth::class,  //这是Http认证
+//						'auth' => function($username,$password){
+//							$user=User::find()->where(['username'=>$username])->one();
+//							if ($user->validatePassword($password)){
+//								return $user;
+//							}
+//							return null;
+//						}
 					]
 				]
 			);
