@@ -17,7 +17,7 @@ return [
             'csrfParam' => '_csrf-api',
         ],
         'user' => [
-            'identityClass' => 'common\models\AdminUser',
+            'identityClass' => 'common\models\User',
             'enableAutoLogin' => true,
 	        'enableSession' => false,
 //            'identityCookie' => ['name' => '_identity-api', 'httpOnly' => true],
@@ -57,7 +57,7 @@ return [
 	            ],
 	            [
 	            	'class'=>'yii\rest\UrlRule',
-		            'controller' => 'adminuser',
+		            'controller' => 'user',
 		            'except' => ['delte','update','create','view'],
 		            'pluralize' => false,
 		            'extraPatterns' => [

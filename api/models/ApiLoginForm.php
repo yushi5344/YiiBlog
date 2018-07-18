@@ -2,7 +2,7 @@
 namespace api\models;
 
 use yii\base\Model;
-use common\models\Adminuser;
+use common\models\User;
 /**
  * Login form
  */
@@ -83,7 +83,7 @@ class ApiLoginForm extends Model
     protected function getUser()
     {
         if ($this->_user === null) {
-            $this->_user = Adminuser::findByUsername($this->username);
+            $this->_user = User::findByUsername($this->username);
         }
 
         return $this->_user;

@@ -20,6 +20,7 @@ use yii\web\IdentityInterface;
  * @property integer $created_at
  * @property integer $updated_at
  * @property string $password write-only password
+ * * @property string $access_token
  *
  * * @property Comment[] $comments
  */
@@ -58,6 +59,7 @@ class User extends ActiveRecord implements IdentityInterface
 	        [[ 'email'], 'required'],
 	        [['email'], 'string', 'max' => 255],
 	        [['email'], 'unique'],
+	        [['access_token'], 'string', 'max' => 128],
         ];
     }
 
@@ -89,8 +91,10 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public static function findIdentityByAccessToken($token, $type = null)
     {
-        throw new NotSupportedException('"findIdentityByAccessToken" is not implemented.');
+//        throw new NotSupportedException('"findIdentityByAccessToken" is not implemented.');
+	    return static::findOne(['access_token'=>$token]);
     }
+
 
     /**
      * Finds user by username
@@ -242,5 +246,16 @@ class User extends ActiveRecord implements IdentityInterface
 
 	public function getStatusStr(){
 		return $this->status== self::STATUS_DELETED ? '已删除' : '正常';
+	}
+
+	/**
+	 * @desc  生成随机的acsess_token
+	 * @author guomin
+	 * @date 2018/7/17  18:54
+	 * @throws \yii\base\Exception
+	 */
+	public function generateAccessToken(){
+		$this->access_token=Yii::$app->security->generateRandomString();
+		return $this->access_token;
 	}
 }

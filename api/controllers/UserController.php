@@ -5,9 +5,9 @@
 	use api\models\ApiLoginForm;
 	use yii\rest\ActiveController;
 
-	class AdminuserController extends ActiveController{
+	class UserController extends ActiveController{
 
-		public $modelClass='common\models\Adminuser';
+		public $modelClass='common\models\User';
 
 		/**
 		 * @desc api登录
