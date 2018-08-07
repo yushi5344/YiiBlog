@@ -14,13 +14,13 @@
 
 		public $modelClass='common\models\Post';
 
-		public function behaviors()
-		{
-			return ArrayHelper::merge(
-				parent::behaviors(),
-				[
-					'authenticatior'=>[
-						'class'=>QueryParamAuth::className()  //这是access_token认证
+//		public function behaviors()
+//		{
+//			return ArrayHelper::merge(
+//				parent::behaviors(),
+//				[
+					//'authenticatior'=>[
+					//	'class'=>QueryParamAuth::className()  //这是access_token认证
 //						'class'=>HttpBasicAuth::class,  //这是Http认证
 //						'auth' => function($username,$password){
 //							$user=User::find()->where(['username'=>$username])->one();
@@ -29,10 +29,10 @@
 //							}
 //							return null;
 //						}
-					]
-				]
-			);
-		}
+//					]
+//				]
+//			);
+//		}
 		/*
 		 * api 认证
 		 * 1.access_token

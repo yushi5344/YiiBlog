@@ -72,7 +72,7 @@ return [
 	            [
 	            	'class'=>'yii\rest\UrlRule',
 		            'controller' => 'user',
-		            'except' => ['delte','update','create','view'],
+		            'except' => ['delete','update','create','view'],
 		            'pluralize' => false,
 		            'extraPatterns' => [
 		            	'POST login'=>'login',
