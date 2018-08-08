@@ -13,7 +13,10 @@
 	class PostController extends ActiveController{
 
 		public $modelClass='common\models\Post';
-
+		public $serializer = [
+			'class' => 'yii\rest\Serializer',
+			'collectionEnvelope' => 'items',
+		];
 //		public function behaviors()
 //		{
 //			return ArrayHelper::merge(
