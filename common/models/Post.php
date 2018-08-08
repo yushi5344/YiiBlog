@@ -167,7 +167,7 @@ class Post extends \yii\db\ActiveRecord
 		return [
 			'id',
 			'title',
-			'内容'=>'content',
+			'content',
 			'status'=>function($model){
 				return $model->status0->name;
 			},
