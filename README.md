@@ -298,3 +298,384 @@ find方法是通过创建一个ActivQueryInterface实例对象来实现的
 - Delete
 		$post=Post::findOne(32);
 		$post->delete();
+
+
+## 数据小部件 ##
+
+数据小部件，用来显示数据的小模块，常用部件
+- DetailView 用来显示一条记录数据的详细情况
+- ListView
+- GridView
+- listView和GridView可以用来显示一个拥有分页，排序和过滤功能的一组数据
+
+
+### DetailView ###
+DetailView小部件常用来显示一条记录的详情
+- 一个model模型类的对象
+- 一个AR类的实例对象
+- 由键值对构成的一个关联数组
+在backend/views/post/view.php中
+
+	/* @var $this yii\web\View */
+	/* @var $model common\models\Post */
+
+
+	DetailView::widget([
+	        'model' => $model,
+	        'attributes' => [
+	            'id',
+	            'title',
+	            'content:ntext',
+	            'tags:ntext',
+	//            'status',
+	            ['label'=>'状态',
+	              'value'=>$model->status0->name
+	            ],
+	            'create_time:datetime',
+	            'update_time:datetime',
+	//            'author_id',
+	            ['label'=>'作者',
+	                'value'=>$model->author->nickname
+	            ]
+	        ],
+	    ])
+
+$model指的是 common\models\Post
+$model->status0的来源如下
+
+	public function getStatus0(){
+	    return $this->hasOne(Poststatus::class,['id'=>'status']);
+    }
+
+是因为文章表和文章状态表是多对一的关系，因此使用hasOne
+这样建立关系之后，一个文章对象，就多了一个statu0的属性
+
+hasOne和hasMany的使用原则
+
+hasOne用于多对一，一对一
+hasMany用于一对多
+
+$model->author的来源
+
+	public function getAuthor(){
+    	return $this->hasOne(Adminuser::class,['id'=>'author_id']);
+    }
+
+注意，这里的方法名称是getXxx()，它对应的属性是xxx,要注意区分大小写。
+
+DetailView数据格式化 
+
+ 	'create_time:datetime',
+
+格式化时间，如果detailView未提供一些格式化函数，可以直接使用php代码
+
+
+	[
+		'attribute'=>'crete_time',
+		'value'=date("Y-m-d H:i:s",$model->create_time)
+	
+	]
+
+detailView两个常用的属性 template和options,她们可以对小部件的展示格式进行设置
+
+	'template' => '<tr><th style="120px">{label}</th><td>{value}</td></tr>',
+    'options' =>['class'=>'table table-striped table-bordered detail-view']
+
+
+# 文章修改页面的完善 #
+在update.php文件中
+
+	<div class="post-update">
+	
+	    <h1><?= Html::encode($this->title) ?></h1>
+	
+	    <?= $this->render('_form', [
+	        'model' => $model,
+	    ]) ?>
+	
+	</div>
+
+- 这里调用render方法渲染出表单的部分，之前在控制器中看到render方法，在view中的render方法在渲染中不会涉及到布局
+-  render的参数_form就是用来渲染的视图文件，是个表单activeForm   
+- 因为在create.ph中也用到了这个表单，因此独立出来。
+
+在这个页面，文章状态不应该是输入框，而是下拉菜单来选择，这时就应该用的activeField的一种 dropdownlist了。
+
+	public $this dropDownList($items,$options=[])
+
+- items是一个键值对构成的关联数组，其中键对应下拉菜单中的value，数组中的值对应下拉菜单中的选项
+- 另一个参数options是一个由键值对组成的关联数组，这个表列出了这些键值对的用途，我们会用到第一个prompt键。
+
+因此，文章状态这个输入应该如下
+
+	<?=
+        $form->field($model, 'status')
+        ->dropDownList($allStatus,['prompt'=>'请选择状态']);
+    ?>
+
+$allStatus这个关联数组怎么获取呢？
+- AR方法
+        $psObjs=Poststatus::find()->all();
+        $allStatus=ArrayHelper::map($psObjs,'id','name');
+- createCommand方法
+        $psArr=Yii::$app->db->createCommand("SELECT id,name from poststatus ")->queryAll();
+        $allStatus=ArrayHelper::map($psArr,'id','name');
+- 查询构建器 QueryBuilder方法
+        $allStatus=(new \yii\db\Query())
+        ->select(['name','id'])
+        ->from('poststatus')
+        ->indexBy('id')
+        ->column();
+- find方法
+        $allStatus=Poststatus::find()
+        ->select(['name','id'])
+        ->orderBy('position')
+        ->indexBy('id')
+        ->column();
+
+第一二种方法使用了ArrayHelper这个类，它是同一个数组助手类
+这个助手类常用的静态方法还有
+- getValue
+- map
+- getColumn
+
+各种查询方法的对比
+![](./images/yii-4.png)
+
+AR的整个生命周期--save（）方法
+![](./images/yii-5.jpg)
+
+重写save方法
+
+	public function beforeSave($insert)
+	{
+		if (parent::beforeSave($insert)){
+			if ($insert){
+				$this->create_time=time();
+				$this->update_time=time();
+			}else{
+				$this->update_time=time();
+			}
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+AR的整个生命周期--其他方法
+![](./images/yii-6.png)
+
+## 标签的修改 ##
+修改逻辑
+![](./images/yii-8.png)
+
+## GridView 小部件 ##
+- GridView和DetailView一样，是用来展示数据的。GridView是Yii中功能最强大的小部件之一。
+- 非常适合用来快速建立系统的管理后台，一般来说，后台不强调美化设计，个性化操作这些特点。
+
+要创建一个GridView，也是通过一个键值对数组来进行配置的键值对包括
+- dataPrivoder 提供数据的数据提供者
+- filterModel  提供搜索过滤功能的搜索模型类
+- columns 指定要展示的列，以及展示的方式
+
+配置好之后，就用一个表格来展示所有数据，每一行都是一条记录
+### columns ###
+- 序号列类，用来显示行号，从1开始并自动增长
+		['class' => 'yii\grid\SerialColumn'],
+- 数据列，用于显示数据
+			[
+                    'attribute' => 'id',
+                    'contentOptions' =>['width'=>'30px']
+            ],
+            'title',
+	         [
+	              'attribute' => 'authorName',
+                  'value' => 'author.nickname',
+                 'contentOptions' => ['width'=>'90px']
+             ],
+			[
+                'attribute' => 'status',
+                'value' => 'status0.name',
+                'filter' =>Poststatus::find()
+                            ->select(['name','id'])
+                            ->orderBy('position')
+                            ->indexBy('id')
+                            ->column()
+            ],
+	数据列常改动的键
+	-  attribute 指定需要展示的属性
+	-  label     标签名
+	-  value 值
+	-  format 格式
+	-  filter 自定义过滤条件的输入框
+	-  contentOptions  设定数据列的HTML属性
+- 动作列，显示动作按钮，如查看，更新，删除等
+		['class' => 'yii\grid\ActionColumn'],
+
+- 复选框类，用来显示一个复选框
+		['class' => 'yii\grid\CheckboxColumn'],
+
+### ActiveDataProvider ###
+DataProvider
+
+- 可以获取数据，应提供给其他组件或者页面使用
+- 可以将获取到的数据进行分页和排序
+- 经常用来给数据小部件提供数据
+- 实现了yii\data\DataProviderInterface接口类
+- 根据获取数据方式的不同，有以下几种类型
+	- ActivedataProvider 通过查询构建器的方式从数据库获取数据
+	- SqlDataProvider通过sql语句从数据库中拿取数据
+	- ArrayDataProiver由数组提供数据
+	
+
+	$dataProvider = new ActiveDataProvider([
+        'query' => $query,
+        'pagination'=>['pageSize'=>5],
+        'sort'=>[
+        	'defaultOrder'=>[
+        		'id'=>SORT_ASC
+	        ],
+	        'attributes'=>['id','update_time']
+        ]
+    ]);
+
+因为ActiveDataProvider实现了yii\data\DataProviderInterface接口类，因此它有以下几种方法
+
+- getCount 当前页的数据条数
+- getPagination 分页对象信息
+- getSort 排序属性
+- getTotalCount 所有记录条数
+- **getmodels** 非常重要的属性，读取数据提供者中的数据。
+
+
+### 后台文章列表作者搜索的构建 ###
+在PostSeach模型类中 
+- 重写attributes方法
+		public function attributes()
+		{
+			 return array_merge(parent::attributes(),['authorName']); 
+		}
+
+- 在rules方法中添加属性名
+		public function rules()
+	    {
+	        return [
+	            [['id', 'status', 'create_time', 'update_time', 'author_id'], 'integer'],
+	            [['title', 'content', 'tags','authorName'], 'safe'],
+	        ];
+	    }
+
+- 在search方法中 查询构造
+
+        $query->join('INNER JOIN','Adminuser','post.author_id=adminuser.id');
+		$query->andFilterWhere(['LIKE','adminuser.nickname',$this->authorName]);
+       //新构造排序
+	    $dataProvider->sort->attributes['authorName']=[
+	    	'asc'=>['Adminuser.nickname'=>SORT_ASC],
+	    	'desc'=>['Adminuser.nickname'=>SORT_DESC],
+	    ];
+
+在视图文件views/post/index.php中
+GridView小部件Columns修改作者那一列的显示
+
+	[
+	    'attribute' => 'authorName',
+	    'value' => 'author.nickname',
+	    'contentOptions' => ['width'=>'90px']
+	 ],
+
+# 后台评论部分完善 #
+
+GridView中的字符串截取
+
+	[
+        'attribute' => 'content',
+        'value' => function($model){
+                $tmpStr=strip_tags($model->content);
+                $tmpLen=mb_strlen($tmpStr);
+                return mb_substr($tmpStr,0,20,'utf-8').($tmpLen>20 ? '...': '');
+        }
+    ],
+
+或者通过getter和setter在模型类中设置
+
+	public function getBeginning(){
+    	$tmpStr=strip_tags($this->content);
+    	$tmpLen=mb_strlen($tmpStr);
+    	return mb_substr($tmpStr,0,20,'utf-8').($tmpLen>20 ? '...' : '');
+    }
+
+GridView中
+
+	[
+        'attribute' => 'content',
+        'value' => 'beginning'
+    ],
+
+- getter方法名义get开头，get后面是部分就是属性的名字
+- setter方法名以set开头，set后面就是属性的名称
+- 当这种属性被读取时，getter放调用，而当属性被赋值时，setter方法调用
+
+GridView中的format
+
+	[
+	    'attribute' => 'create_time',
+	    'format' => ['date','php:Y-m-d H:i:s']
+	],
+
+
+GridView中自定义按钮
+
+	[
+    'class' => 'yii\grid\ActionColumn',
+    'template' => '{view}{update}{delete}{approve}',
+    'buttons' => [
+         'approve'=>function($url,$model,$key){
+            $options=[
+                    'title'=>Yii::t('yii','审核'),
+                    'aria-label'=>Yii::t('yii','审核'),
+                    'data-confirm'=>Yii::t('yii','确定通过这条审核？'),
+                    'data-method'=>'post',
+                    'data-pjax'=>'0'
+            ];
+            return Html::a('<span class="glyphicon glyphicon-check"></span>',$url,$options);
+         }
+        ],
+    ],
+
+在控制器中实现approve这个方法
+
+	public function actionApprove($id)
+    {
+    	$model=$this->findModel($id);
+    	if ($model->approve()){
+    		return $this->redirect(['index']);
+	    }
+    }
+
+在模型类中实现approve(）方法
+
+	public function approve(){
+    	$this->status=2;
+    	return ($this->save() ? true : false);
+    }
+
+显示待处理评论数
+
+在views/layout/main.php中
+
+	$menuItems = [
+        ['label' => 'Home', 'url' => ['/site/index']],
+        ['label' => '文章管理', 'url' => ['/post/index']],
+        ['label' => '评论管理', 'url' => ['/comment/index']],
+        '<li><span class="badge badge-inverse">'.\common\models\Comment::getPengdingCommentCount().'</span></li>',
+        ['label' => '用户管理', 'url' => ['/user/index']],
+        ['label' => '管理员', 'url' => ['/adminuser/index']],
+    ];
+
+在\common\models\Comment模型类中实现getPengdingCommentCount方法
+
+
+	public static function getPengdingCommentCount(){
+    	return Comment::find()->where(['status'=>1])->count();
+    }
