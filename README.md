@@ -679,3 +679,113 @@ GridView中自定义按钮
 	public static function getPengdingCommentCount(){
     	return Comment::find()->where(['status'=>1])->count();
     }
+
+# 用户认证 #
+
+1. 什么是认证
+认证时鉴定用户身份的过程，通常是使用用户名和密码来鉴定用户身份。认证时登录功能的基础
+如何实现认证
+1. 用户组件yii\web\User用来管理用户的认证状态
+  - 配置用户组件yii\web\user
+  - 指定一个含有认证逻辑的认证类 app\models\User
+  - 实现yii\web\IdentityInterface接口
+  	 + findIdentity()
+  	 + findIdentityByAccessToken()
+  	 + getId()
+  	 + getAuthKey()
+  	 + ValidateAuthKey()
+1. 使用用户组件yii\web\User
+	- 检测用户身份
+			$identity=Yii:$app->user->identity;
+	- 当前用户id，未认证用户则为null
+			$id=Yii::$app->user->id;
+	- 判断当前用户是否为游客
+			Yii::$app->user->isGuest;
+	- 将当前用户身份登记到yii\web\User,根据设置，用session或cookie记录用户身份
+			Yii::$app->user->login($identity）
+	- 注销用户
+			Yii::$app->user->logout();
+
+前后台认证的分离
+- 在backend\config\main.ph中修改认证类
+		'user' => [
+	        'identityClass' => 'common\models\Adminuser',
+	        'enableAutoLogin' => true,
+	        'identityCookie' => ['name' => '_identity-backend', 'httpOnly' => true],
+	    ],
+- 在common\models\Adminuser.php中新增表字段
+		 * @property string $auth_key
+		 * @property string $password_hash
+		 * @property string $password_reset_token
+
+- class Adminuser 实现 yii\web\IdentityInterface接口
+		public static function findIdentity($id)
+		{
+			return static::findOne(['id' => $id]);
+		}
+
+		public static function findIdentityByAccessToken($token, $type = null)
+		{
+			throw new NotSupportedException('"findIdentityByAccessToken" is not implemented.');
+		}
+
+		public function getId()
+		{
+			return $this->getPrimaryKey();
+		}
+
+		public function getAuthKey()
+		{
+			return $this->auth_key;
+		}
+
+		public function validateAuthKey($authKey)
+		{
+			return $this->getAuthKey() === $authKey;
+		}
+
+- 新建AdminloginForm模型类
+		public function validatePassword($attribute, $params)
+	    {
+	        if (!$this->hasErrors()) {
+	            $user = $this->getUser();
+	            if (!$user || !$user->validatePassword($this->password)) {
+	                $this->addError($attribute, 'Incorrect username or password.');
+	            }
+	        }
+	    }
+	
+	    public function login()
+	    {
+	        if ($this->validate()) {
+	            return Yii::$app->user->login($this->getUser(), $this->rememberMe ? 3600 * 24 * 30 : 0);
+	        } else {
+	            return false;
+	        }
+	    }
+	
+	    protected function getUser()
+	    {
+	        if ($this->_user === null) {
+	            $this->_user = Adminuser::findByUsername($this->username);
+	        }
+	
+	        return $this->_user;
+	    }
+
+- backend\controllers\SiteController.php中
+		public function actionLogin()
+	    {
+	        if (!Yii::$app->user->isGuest) {
+	            return $this->goHome();
+	        }
+	
+	        $model = new AdminLoginForm();
+	        if ($model->load(Yii::$app->request->post()) && $model->login()) {
+	            return $this->goBack();
+	        } else {
+	            return $this->render('login', [
+	                'model' => $model,
+	            ]);
+	        }
+	    }
