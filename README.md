@@ -706,7 +706,7 @@ GridView中自定义按钮
 	- 注销用户
 			Yii::$app->user->logout();
 
-前后台认证的分离
+## 前后台认证的分离 ##
 - 在backend\config\main.ph中修改认证类
 		'user' => [
 	        'identityClass' => 'common\models\Adminuser',
@@ -789,3 +789,297 @@ GridView中自定义按钮
 	            ]);
 	        }
 	    }
+
+## 授权 ##
+
+yii框架中存在两种授权模式
+- ACF
+- RBAC
+## 存取控制过滤器 ##
+- 存取控制过滤器是一种通过yii\filters\AccessControl类来实现的简单授权方法，适用于仅需要简单的存取控制的应用
+
+- 在控制器文件中behaviors方法里面去设置指定存取的规则，在规则中，用actions来指定动作，allow用来指定是否“允许”,roles用来指定适用于这条规则的用户角色
+
+- 两类角色
+  - ?: 用户匹配访客用户
+  - @: 用户匹配已认证用户
+		public function behaviors()
+	    {
+	        return [
+	            'access' => [
+	                'class' => AccessControl::className(),
+	                'only' => ['logout', 'signup'],
+	                'rules' => [
+	                    [
+	                        'actions' => ['signup'],
+	                        'allow' => true,
+	                        'roles' => ['?'],
+	                    ],
+	                    [
+	                        'actions' => ['logout'],
+	                        'allow' => true,
+	                        'roles' => ['@'],
+	                    ],
+	                ],
+	            ],
+	        ];
+	    }
+
+## 基于角色的存取控制 RBAC ##
+
+- RBAC的基本概念
+一个简单而强大的集中式存取控制机制
+- 角色与权限
+角色时权限的集合
+一个角色可以指派给一个或者多个用户
+- 角色和权限的树结构
+角色和权限都实现了树的层次结构
+一个角色可能由其他角色或权限构成
+权限可以由其他权限构成
+- 权限检查
+一个角色可以指派给一个或者多个用户
+系统会检查包含该权限的角色是否指派给了该用户
+- 规则
+规则可以是一段代码，用来与一个角色或者权限关联
+通过规则的执行，检查一个用户是否满足角色或者权限的要求
+
+## RBAC代码实现 ##
+
+1. 在common\config\main.php中
+		'components' => [
+	        'cache' => [
+	            'class' => 'yii\caching\FileCache',
+	        ],
+		    'authManager'=>[
+		    	'class'=>'yii\rbac\DbManager',
+		    ],
+	    ],
+
+1. 创建数据库，使用迁移命令
+	   ./yii migrate --migrationPath=@yii/rbac/migrations
+
+1. 通过authManager提供的API创建一个控制台命令，初始化授权数据
+2. 执行权限检查
+		if (!Yii::$app->user->can('createPost')){
+    		throw new ForbiddenHttpException('对不起，你没有进行该操作的权限');
+	    }
+
+# 前台页面完善 #
+
+- 设置前台默认路由 frontend/config/main.php
+		'defaultRoute'=>'post/index',
+
+- 前台文章列表listView
+		ListView::widget([
+	         'id'=>'postList',
+	        'dataProvider' => $dataProvider,
+	        'itemView' => '_listitem',//子视图，显示文章标题等内容
+	        'layout' => '{items}{pager}',
+	        'pager' => [
+	           'maxButtonCount'=>10,
+	           'nextPageLabel'=>Yii::t('app','下一页 '),
+	           'prevPageLabel' =>Yii::t('app','上一页'),
+	        ],
+	    ]);
+
+- 子视图_listitem的实现
+在views/post下创建_listitem.php文件
+		<?php
+		use yii\helpers\Html;
+		?>
+		<div class="post">
+			<div class="title">
+				<h2>
+					<a href="<?= $model->url;?>"><?= Html::encode($model->title);?></a>
+				</h2>
+			</div>
+			<div class="author">
+				<span class="glyphicon glyphicon-time" aria-hidden="true"><em><?= date('Y-m-d H:i:s',$model->create_time);?></em></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<span class="glyphicon glyphicon-user" aria-hidden="true"><?= Html::encode($model->author->nickname);?></span>
+			</div>
+			<div class="content">
+				<?= $model->beginning;?>
+			</div>
+			<br>
+			<div class="nav">
+				<span class="glyphicon glyphicon-tag" aria-hidden="true"></span>
+				<?= implode(',',$model->tagLinks);?>
+				<br>
+				<?= Html::a("评论({$model->commentCount})",$model->url.'#comments');?> | 最后修改于 <?= date('Y-m-d H:i:s',$model->update_time)?>
+			</div>
+		</div>
+在子视图中出现了$moderl->url的属性，这个属性怎么实现呢？
+- $moderl->url属性的实现
+		public function getUrl(){
+			return Yii::$app->urlManager->createAbsoluteUrl(
+				['post/detail','id'=>$this->id,'title'=>$this->title]
+			);
+		}
+
+- 使用getUrl方法的有点
+  + 不用到处调用createUrl方法
+  + 当链接发生变化时，修改很方便
+  + URL美化时，会更加方便
+
+## 前台搜索功能的实现 ##
+![](./images/yii-11.png)
+
+
+## 前台标签云的实现 ##
+1. 获取显示数据
+ - 在Tags模型类中添加方法，获取按标签个数多少的权重排序的数组
+	 	public static function findTagWeights($limit=20){
+	    	$tag_size_level=5;
+	    	$models=Tag::find()->orderBy('frequency desc')->limit($limit)->all();
+	    	$total=Tag::find()->limit($limit)->count();
+	    	$stepper=ceil($total/$tag_size_level);
+	    	$tags=[];
+	    	$counter=1;
+	    	if ($total>0){
+			    foreach ($models as $model) {
+				    $weight=ceil($counter/$stepper)+1;
+				    $tags[$model->name]=$weight;
+				    $counter++;
+	    		}
+		    }
+		    ksort($tags);
+	    	return $tags;
+	    }
+ - 在frontend/controllerrs/PostController.php的相关方法中将数据传输到视图页面
+			public function actionIndex()
+		    {
+		    	$tags=Tag::findTagWeights();
+		        $searchModel = new PostSearch();
+		        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+		
+		        return $this->render('index', [
+		            'searchModel' => $searchModel,
+		            'dataProvider' => $dataProvider,
+			        'tags'=>$tags,
+		        ]);
+		    }
+1. 自定义小部件 
+ - 小部件
+ 	小部件是在视图中使用的可重用单元，使用面向对象方式创建复杂和可配置用户界面单元
+ - 创建小部件
+    1. 从yii\base\Widget继承类
+    2. 重写yii\base\Widget::init()方法
+    3. 重写yii\base\Widget::run()方法
+    4. 渲染结果可在run()方法中直接打印输出或以字符串返回
+
+1. 小部件实现代码
+		<?php
+			namespace frontend\components;
+		
+			use yii\Base\Widget;
+			use yii;
+			class TagsCloudWidget extends  Widget{
+				public  $tags;
+				public function init()
+				{
+					parent::init(); // TODO: Change the autogenerated stub
+				}
+		
+				public function run()
+				{
+					$tagsString='';
+					$fontStyle=[
+						'6'=>'danger',
+						'5'=>'info',
+						'4'=>'warning',
+						'3'=>'primary',
+						'2'=>'success',
+					];
+		
+					foreach ($this->tags as $tag=>$weight) {
+						$tagsString.='<a href="'.Yii::$app->homeUrl.'?r=post/index&PostSearch[tags]'.$tag.'">
+										<h'.$weight.' style="display: inline-block;"><span class="label label-'.$fontStyle[$weight].'">'.$tag.'</span></h'.$weight.'>
+										</a>';
+					}
+					return $tagsString;
+				}
+		
+			}
+	
+1. 前台标签云的展示
+		<li class="list-group-item">
+            <?= TagsCloudWidget::widget(['tags' => $tags])?>
+         </li>
+
+
+
+# 控制台命令 #
+
+- 创建文件 console\controllers\HelloController.php
+		<?php
+			namespace console\controllers;
+			
+			use yii\console\Controller;
+		
+			class HelloController extends Controller{}
+
+- 创建index方法
+		public function actionIndex(){
+			echo "hello world";
+		}
+这个控制器在控制台执行语句为 
+		./yii hello  
+index为默认动作
+- 创建list方法
+
+		public function actionList(){
+			$posts=Post::find()->all();
+			foreach ($posts as $post) {
+				echo $post['id'].'-'.$post['title']."\n";
+			}
+
+		}
+控制台命令为 
+		./yii hello/list
+
+- 创建带一个参数的方法
+		public function actionWho($name){
+			echo "hello $name";
+		}
+控制台执行命令
+		./yii hello/who name
+- 创建带多个参数的方法
+		public function actionBoth($n,$m){
+			echo "hello $n,$m";
+		}
+控制台执行命令
+		./yii hello/both n m
+- 创建参数是数组的方法
+		public function actionAll($array){
+			print_r($array);
+		}
+控制台命令
+		./yii hello/all a,b,c,d
+
+- 创建指定参数的方法
+		public $rev;
+		public function actionOpt(){
+			if ($this->rev==1){
+				echo strrev("hello world")."\n";
+			}else{
+				echo "hello world";
+			}
+		}
+控制台执行命令
+		./yii hello/opt  打印出hello world
+		./yii hello/opt --rev=1  打印出dlrow olleh
+
+- 给参数指定别名
+	1. 重写options方法
+			public function options($actionID)
+			{
+				return ['rev'];
+			}
+	1. 给参数指定别名
+			public function optionAliases()
+			{
+				return ['r'=>'rev'];
+			}
+	1. 上例中下面两句命令，执行结果一样
+			./yii hello/opt --rev=1  
+			./yii hello/opt -r=1  
