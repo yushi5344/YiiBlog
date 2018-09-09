@@ -1083,3 +1083,233 @@ index为默认动作
 	1. 上例中下面两句命令，执行结果一样
 			./yii hello/opt --rev=1  
 			./yii hello/opt -r=1  
+
+
+![](./images/yii-12.png)
+# URL美化 #
+1. Apache下的美化
+路由重写规则
+		<VirtualHost *:80>
+		  ServerName blog.com
+		  DocumentRoot "G:/www/YiiBlog/frontend/web/"
+		
+		  <Directory "G:/www/YiiBlog/frontend/web/">
+		  RewriteEngine on
+		  RewriteCond %{REQUEST_FILENAME} !-f
+		  RewriteCond %{REQUEST_FILENAME} !-d
+		  RewriteRule . index.php
+		  DirectoryIndex index.php
+		
+		  Require all granted
+		
+		  </Directory>
+		</VirtualHost>
+		
+		<VirtualHost *:80>
+		  ServerName admin.blog.com
+		  DocumentRoot "G:/www/YiiBlog/backend/web/"
+		
+		  <Directory "G:/www/YiiBlog/backend/web/">
+		  RewriteEngine on
+		  RewriteCond %{REQUEST_FILENAME} !-f
+		  RewriteCond %{REQUEST_FILENAME} !-d
+		  RewriteRule . index.php
+		
+		  DirectoryIndex index.php
+		
+		  Require all granted
+		
+		  </Directory>
+		</VirtualHost>
+2. Nginx下的美化
+		server {
+		    charset utf-8;
+		    client_max_body_size 128M;
+		
+		    listen 82; ## listen for ipv4
+		
+		    server_name localhost;
+		    root        "G:/www/YiiBlog/frontend/web";
+		    index       index.php;
+		
+		    access_log  G:/www/YiiBlog/log/frontend-access.log;
+		    error_log   G:/www/YiiBlog/log/frontend-error.log;
+		
+		    location / {
+		        try_files $uri $uri/ /index.php$is_args$args;
+		    }
+		
+		    location ~ ^/assets/.*\.php$ {
+		        deny all;
+		    }
+		
+		    location ~ \.php$ {
+		        include fastcgi_params;
+		        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+		        fastcgi_pass 127.0.0.1:9000;
+		        #fastcgi_pass unix:/var/run/php5-fpm.sock;
+		        try_files $uri =404;
+		    }
+		
+		    location ~* /\. {
+		        deny all;
+		    }
+		}
+		     
+		server {
+		    charset utf-8;
+		    client_max_body_size 128M;
+		
+		    listen 81; ## listen for ipv4
+		
+		    server_name localhost;
+		    root        "G:/www/YiiBlog/backend/web";
+		    index       index.php;
+		
+		    access_log  G:/www/YiiBlog/log/backend-access.log;
+		    error_log   G:/www/YiiBlog/log/backend-error.log;
+		
+		    location / {
+		        try_files $uri $uri/ /index.php$is_args$args;
+		    }
+		
+		    location ~ ^/assets/.*\.php$ {
+		        deny all;
+		    }
+		
+		    location ~ \.php$ {
+		        include fastcgi_params;
+		        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+		        fastcgi_pass 127.0.0.1:9000;
+		        #fastcgi_pass unix:/var/run/php5-fpm.sock;
+		        try_files $uri =404;
+		    }
+		
+		    location ~* /\. {
+		        deny all;
+		    }
+		}
+
+1. 在yii框架中的设置
+		'urlManager' => [
+            'enablePrettyUrl' => true,
+            'showScriptName' => false,
+	        'suffix' => '.html',//伪静态
+            'rules' => [
+            	'<controller:\w+>/<id:\d+>'=>'<controller>/detail',
+            ],
+        ],
+
+# 缓存 #
+应用一般有一些比较耗时才能计算出来的数据，这些数据变化并不频繁，我们可以考虑把这种数据存储起来，称其为缓存。
+yii框架支持多种缓存机制
+- 数据缓存
+- 片段缓存
+- 页面缓存
+- HTTP缓存
+
+## 数据缓存 ##
+
+		$data=Yii::$app->cache->get('postCount');
+        if ($data===false){
+            $data=\common\models\Post::find()->count();
+        }
+        Yii::$app->cache->set('postCount',$data,86400);
+        echo $data;
+
+1. 缓存组件
+在common\config\main.php中
+		'cache' => [
+            'class' => 'yii\caching\FileCache',
+        ],
+1. FileCache类工作方式
+  - 它是一个用文件来作为存储方式的缓存组件
+  - 每个被缓存的数据，都会单独给它一个文件来保存
+  - 这些文件存放在$cachePath
+  - $cachePath默认在runtime/cache下
+
+1. 其他缓存组件
+	+ FileCache 使用文件存储数据
+	+ ApcCache使用php APC扩展
+	+ DbCache使用一个数据库存储缓存数据
+	+ MemCache 
+	+ yii\redis\Cache
+	+ WinCache
+	+ XCache
+	+ ZendDataCache
+	
+1. 数据缓存
+	+ get 通过一个指定的键从缓存中取出一项数据，不存在或者失效返回false
+	+ set 通过一个指定的键将一项数据存放到缓存中
+	+ add 如果缓存中未找到该键，则指定数据存放到缓存中
+	+ multiGet 通过指定多个键从缓存中取回多项数据
+	+ multiSet 将多项数据放到缓存总，每项数据对应一个键
+	+ MultiAdd 将多项数据存储到缓存中
+	+ exists 返回一个值，指明某个键是否存在于缓存中
+	+ delete 通过一个键，删除缓存中对应的值
+	+ flush  删除缓存中的所有数据
+
+1. 缓存依赖
+		$data=Yii::$app->cache->get('postCount');
+        $dependency=new \yii\caching\DbDependency( ['sql'=>'select count(id) from post'] );
+        if ($data===false){
+            $data=\common\models\Post::find()->count();
+        }
+        Yii::$app->cache->set('postCount',$data,86400,$dependency);
+        echo $data;
+缓存依赖是yii\Caching\Dependency派生类的对象
+常用的缓存依赖有
+	- DbDependency
+	- FileDependency 判断文件最后修改时间
+	- ChainedDependency 判断依赖链
+	- ExpressionDependency php表达式
+	- GroupDependency 将一项缓存标记到一个组名，可以通过调用对象的invalidate(）一次性将相同组名的缓存全部设置为失效状态
+
+## 片段缓存 ##
+
+	if ($this->beginCache('cache',['dependency'=>$dependency])){
+        echo TagsCloudWidget::widget(['tags' => $tags]);
+        $this->endCache();
+    }
+
+![](./images/yii-13.png)
+
+## 页面缓存 ##
+
+	public function behaviors()
+    {
+        return [
+	        'pageCache'=>[
+		        'class'=>'yii\filters\PageCache',
+		        'only' => ['index'],
+		        'duration' => '600',
+		        'variations' => [
+		        	Yii::$app->request->get('page'),
+		        	Yii::$app->request->get('PostSearch'),
+		        ],
+		        'dependency' => [
+			        'class'=>'yii\caching\DbDependency',
+			        'sql'=>'select count(id) from post',
+		        ]
+	        ],
+        ];
+    }
+
+
+![](./images/yii-14.png)
+
+## HTTP缓存 ##
+
+	public function behaviors()
+    {
+        return [
+	        'httpCache'=>[
+	        	'class'=>'yii\filters\HttpCache',
+		        'only' => ['detail'],
+		        'lastModified' => function($action,$params){
+        	        $q=new Query();
+        	        return $q->from('post')->max('update_time');
+		        }
+	        ],
+        ];
+    }
